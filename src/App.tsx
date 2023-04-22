@@ -17,16 +17,9 @@ function App() {
     setBoard(newBoard)
   }
 
-  interface BoardProps {
-    board: Board;
-    setBoard: (board: Board) => void;
-  }
-
-  
-
   return (
     <div className="App">
-      <BoardComponent />
+      <BoardComponent board={board} setBoard={setBoard}/>
     </div>
   )
 }
