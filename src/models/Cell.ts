@@ -1,6 +1,15 @@
 import { Board } from "./Board";
 import { Colors } from "./Colors";
-import { Figure } from "./pieces/Figure";
+import { Figure, FigureNames } from "./pieces/Figure";
+import moveSound from '../assets/sounds/one_beep.wav'
+
+function playMoveSound() {
+  new Audio(moveSound).play()
+}
+
+let whiteKingMoved: boolean = false
+
+let blackKingMoved: boolean = false
 
 export class Cell {
     readonly x: number;
@@ -97,6 +106,16 @@ export class Cell {
             if (target.figure) {
                 this.addLostFigure(target.figure);
             }
+            if (this.figure.name == FigureNames.KING) {
+                if (this.figure.color = Colors.WHITE) {
+                    whiteKingMoved = true
+                    console.log(whiteKingMoved)
+                } else {
+                    blackKingMoved = true
+                    console.log(whiteKingMoved)
+                }
+            }
+            playMoveSound();
             target.setFigure(this.figure);
             this.figure = null;
         }

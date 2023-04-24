@@ -14,15 +14,15 @@
 }
 
 .board {
-  width: calc(80px * 8);
-  height: calc(80px * 8);
+  width: calc(90px * 8);
+  height: calc(90px * 8);
   display: flex;
   flex-wrap: wrap;
 }
 
 .cell {
-  width: 80px;
-  height: 80px;
+  width: 90px;
+  height: 90px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -54,9 +54,24 @@
 }
 
 .lost {
-  height: 260px;
+  height: 300px;
   width: 200px;
   padding: 30px;
   text-align: center;
-  background-color: rgb(56, 50, 50);
+  background-color: rgb(39, 45, 45);
+}
+
+.info {
+  width: 350px;
+  display: flex;
+  justify-items: center;
+  align-items: center;
+  flex-direction: column;
+  padding-right: 100px;
+  text-align: center;
+}
+
+.player {
+  font-size: 3em;
+  margin-bottom: 40px;
 }

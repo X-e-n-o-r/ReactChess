@@ -21,7 +21,7 @@ const Timer: FC<TimerProps> = ({currentPlayer, restart}) => {
       clearInterval(timer.current)
     }
     const callback = currentPlayer?.color === Colors.WHITE ? decrementWhiteTimer : decrementBlackTimer
-    timer.current = setInterval(callback, 1000)
+    timer.current = setInterval(callback, 1000);
   }
 
   function decrementBlackTimer() {
@@ -37,13 +37,19 @@ const Timer: FC<TimerProps> = ({currentPlayer, restart}) => {
     restart()
   }
 
+  function checkTime() {
+    if ((whiteTime | blackTime) == 0) {
+      restart()
+    }
+  }
+
   return (
     <div>
       <div>
         <button onClick={handleRestart}>Restart game</button>
       </div>
-      <h2>Черные - {blackTime}</h2>
-      <h2>Белые - {whiteTime}</h2>
+      <h2>Black - {blackTime}</h2>
+      <h2>White - {whiteTime}</h2>
     </div>
   );
 };

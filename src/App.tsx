@@ -6,6 +6,8 @@ import { Player } from './models/Player';
 import { Colors } from './models/Colors';
 import LostFigures from './components/LostFigures';
 import Timer from './components/Timer';
+import startSound from './assets/sounds/game-start.wav'
+
 
 function App() {
   const [board, setBoard] = useState(new Board());
@@ -18,11 +20,17 @@ function App() {
     setCurrentPlayer(whitePlayer);
   }, [])
 
+  function playStartSound() {
+    new Audio(startSound).play()
+  }
+
   function restart() {
+    playStartSound()
     const newBoard = new Board();
     newBoard.initCells();
     newBoard.addFigurs();
     setBoard(newBoard);
+    setCurrentPlayer(whitePlayer)
   }
 
   function swapPlayer() {
@@ -31,9 +39,12 @@ function App() {
 
   return (
     <div className="App">
+      <div className='info'>
+      <h1 className='player'>Current player: {currentPlayer?.color}</h1>
       <Timer 
       restart={restart}
       currentPlayer={currentPlayer}/>
+      </div>
       <BoardComponent
       board={board}
       setBoard={setBoard}

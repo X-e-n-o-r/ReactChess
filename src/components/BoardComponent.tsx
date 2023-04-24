@@ -43,8 +43,6 @@ function updateBoard() {
 }
 
   return (
-    <>
-    <h1>Current player: {currentPlayer?.color}</h1>
     <div className='board'>
       {board.cells.map((row, index) => 
       <React.Fragment key={index}>
@@ -59,7 +57,6 @@ function updateBoard() {
       </React.Fragment>
       )}
     </div>
-    </>
   );
 };
 
