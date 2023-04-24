@@ -4,12 +4,8 @@ import { Figure, FigureNames } from "./pieces/Figure";
 import moveSound from '../assets/sounds/one_beep.wav'
 
 function playMoveSound() {
-  new Audio(moveSound).play()
+  new Audio(moveSound).play();
 }
-
-let whiteKingMoved: boolean = false
-
-let blackKingMoved: boolean = false
 
 export class Cell {
     readonly x: number;
@@ -37,7 +33,7 @@ export class Cell {
     isEnemy(target: Cell): boolean {
         if(target.figure) {
             return this.figure?.color !== target.figure.color;
-        }
+        }   
 
         return false;
     }
@@ -105,15 +101,6 @@ export class Cell {
             this.figure.moveFigure(target);
             if (target.figure) {
                 this.addLostFigure(target.figure);
-            }
-            if (this.figure.name == FigureNames.KING) {
-                if (this.figure.color = Colors.WHITE) {
-                    whiteKingMoved = true
-                    console.log(whiteKingMoved)
-                } else {
-                    blackKingMoved = true
-                    console.log(whiteKingMoved)
-                }
             }
             playMoveSound();
             target.setFigure(this.figure);

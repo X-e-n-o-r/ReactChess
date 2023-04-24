@@ -6,7 +6,6 @@ interface TimerProps {
   currentPlayer: Player | null;
   restart: () => void;
 }
-
 const Timer: FC<TimerProps> = ({currentPlayer, restart}) => {
   const [blackTime, setBlackTime] = useState(300)
   const [whiteTime, setWhiteTime] = useState(300);
@@ -38,7 +37,7 @@ const Timer: FC<TimerProps> = ({currentPlayer, restart}) => {
   }
 
   function checkTime() {
-    if ((whiteTime | blackTime) == 0) {
+    if ((whiteTime || blackTime) == 0) {
       restart()
     }
   }

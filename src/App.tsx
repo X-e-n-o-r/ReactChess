@@ -6,25 +6,24 @@ import { Player } from './models/Player';
 import { Colors } from './models/Colors';
 import LostFigures from './components/LostFigures';
 import Timer from './components/Timer';
-import startSound from './assets/sounds/game-start.wav'
-
+import startSound from './assets/sounds/game-start.wav';
 
 function App() {
   const [board, setBoard] = useState(new Board());
   const [whitePlayer, setWhitePlayer] = useState(new Player(Colors.WHITE));
   const [blackPlayer, setBlackPlayer] = useState(new Player(Colors.BLACK));
-  const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null)
+  const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
 
   useEffect(() => {
     restart();
     setCurrentPlayer(whitePlayer);
-  }, [])
+  }, []);
 
   function playStartSound() {
     new Audio(startSound).play()
-  }
+  };
 
-  function restart() {
+  const restart = () => {
     playStartSound()
     const newBoard = new Board();
     newBoard.initCells();
@@ -54,13 +53,13 @@ function App() {
       <div>
         <LostFigures
         title='Black figures'
-        figures={board.lostBlackFigures} />
+        figures={board.lostBlackFigures}/>
         <LostFigures
         title='White figures'
-        figures={board.lostWhiteFigures} />
+        figures={board.lostWhiteFigures}/>
       </div>
     </div>
   )
 }
 
-export default App
+export default App;
