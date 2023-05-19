@@ -1,98 +1,190 @@
-import { Cell } from "./Cell";
-import { Colors } from "./Colors";
-import { Bishop } from "./pieces/Bishop";
-import { Figure } from "./pieces/Figure";
-import { King } from "./pieces/King";
-import { Knight } from "./pieces/Knight";
-import { Pawn } from "./pieces/Pawn";
-import { Queen } from "./pieces/Queen";
-import { Rook } from "./pieces/Rook";
+import { getPossibleBishopMoves, getPossibleKingMoves, getPossibleKnightMoves, getPossiblePawnMoves, getPossibleQueenMoves, getPossibleRookMoves, getCastlingMoves } from "../referee/rules";
+import { PieceType, TeamType } from "../Types";
+import { Pawn } from "./Pawn";
+import { Piece } from "./Piece";
+import { Position } from "./Position";
 
 export class Board {
-    cells: Cell[][] = [];
-    lostBlackFigures: Figure[] = [];
-    lostWhiteFigures: Figure[] = [];
+    pieces: Piece[];
+    totalTurns: number;
+    winningTeam?: TeamType;
 
-    public initCells() {
-        for (let i = 0; i < 8; i++) {
-            const row: Cell[] = []
-            for (let j = 0; j < 8; j++) {
-                if ((i + j) % 2 !== 0) {
-                    row.push(new Cell(this, j, i, Colors.BLACK, null))
-                } else {
-                    row.push(new Cell(this, j, i, Colors.WHITE, null))
+    constructor(pieces: Piece[], totalTurns: number) {
+        this.pieces = pieces;
+        this.totalTurns = totalTurns;
+    }
+
+    get currentTeam(): TeamType {
+        return this.totalTurns % 2 === 0 ? TeamType.OPPONENT : TeamType.OUR;
+    }
+
+    calculateAllMoves() {
+        // Calculate the moves of all the pieces
+        for (const piece of this.pieces) {
+            piece.possibleMoves = this.getValidMoves(piece, this.pieces)
+        }
+
+        // Calculate castling moves
+        for (const king of this.pieces.filter(p => p.isKing)) {
+            if (king.possibleMoves === undefined) continue;
+
+            king.possibleMoves = [...king.possibleMoves, ...getCastlingMoves(king, this.pieces)];
+        }
+
+        // Check if the current team moves are valid
+        this.checkCurrentTeamMoves();
+
+        // Remove the posibble moves for the team that is not playing
+        for (const piece of
+            this.pieces.filter(p => p.team !== this.currentTeam)) {
+            piece.possibleMoves = [];
+        }
+
+        // Check if the playing team still has moves left
+        if (this.pieces.filter(p => p.team === this.currentTeam)
+            .some(p => p.possibleMoves !== undefined && p.possibleMoves.length > 0)) return;
+
+        this.winningTeam = (this.currentTeam === TeamType.OUR) ? TeamType.OPPONENT : TeamType.OUR;
+    }
+
+    checkCurrentTeamMoves() {
+        // Loop through all the current team's pieces
+        for (const piece of this.pieces.filter(p => p.team === this.currentTeam)) {
+            if (piece.possibleMoves === undefined) continue;
+
+            // Simulate all the piece moves
+            for (const move of piece.possibleMoves) {
+                const simulatedBoard = this.clone();
+
+                // Remove the piece at the destination position
+                simulatedBoard.pieces = simulatedBoard.pieces.filter(p => !p.samePosition(move));
+
+                // Get the piece of the cloned board
+                const clonedPiece = simulatedBoard.pieces.find(p => p.samePiecePosition(piece))!;
+                clonedPiece.position = move.clone();
+
+                // Get the king of the cloned board
+                const clonedKing = simulatedBoard.pieces.find(p => p.isKing && p.team === simulatedBoard.currentTeam)!;
+
+                // Loop through all enemy pieces, update their possible moves
+                // And check if the current team's king will be in danger
+                for (const enemy of simulatedBoard.pieces.filter(p => p.team !== simulatedBoard.currentTeam)) {
+                    enemy.possibleMoves = simulatedBoard.getValidMoves(enemy, simulatedBoard.pieces);
+
+                    if (enemy.isPawn) {
+                        if (enemy.possibleMoves.some(m => m.x !== enemy.position.x
+                            && m.samePosition(clonedKing.position))) {
+                            piece.possibleMoves = piece.possibleMoves?.filter(m => !m.samePosition(move));
+                        }
+                    } else {
+                        if (enemy.possibleMoves.some(m => m.samePosition(clonedKing.position))) {
+                            piece.possibleMoves = piece.possibleMoves?.filter(m => !m.samePosition(move));
+                        }
+                    }
                 }
             }
-            this.cells.push(row);
         }
     }
 
-    public hightlightCells(selectedCell: Cell | null) {
-        for (let i = 0; i < this.cells.length; i++) {
-            const row = this.cells[i];
-            for (let j = 0; j < row.length; j++) {
-                const target = row[j];
-                target.avaliable = !!selectedCell?.figure?.canMove(target)
-            }
+    getValidMoves(piece: Piece, boardState: Piece[]): Position[] {
+        switch (piece.type) {
+            case PieceType.PAWN:
+                return getPossiblePawnMoves(piece, boardState);
+            case PieceType.KNIGHT:
+                return getPossibleKnightMoves(piece, boardState);
+            case PieceType.BISHOP:
+                return getPossibleBishopMoves(piece, boardState);
+            case PieceType.ROOK:
+                return getPossibleRookMoves(piece, boardState);
+            case PieceType.QUEEN:
+                return getPossibleQueenMoves(piece, boardState);
+            case PieceType.KING:
+                return getPossibleKingMoves(piece, boardState);
+            default:
+                return [];
         }
     }
 
-    public getCopyBoard(): Board {
-        const newBoard = new Board();
-        newBoard.cells = this.cells;
-        newBoard.lostWhiteFigures = this.lostWhiteFigures;
-        newBoard.lostBlackFigures = this.lostBlackFigures;
-        return newBoard;
-    }
+    playMove(enPassantMove: boolean,
+        validMove: boolean,
+        playedPiece: Piece,
+        destination: Position): boolean {
+        const pawnDirection = playedPiece.team === TeamType.OUR ? 1 : -1;
+        const destinationPiece = this.pieces.find(p => p.samePosition(destination));
 
-    public getCell(x: number, y: number) {
-        return this.cells[y][x]
-    }
+        // If the move is a castling move do this
+        if (playedPiece.isKing && destinationPiece?.isRook
+            && destinationPiece.team === playedPiece.team) {
+            const direction = (destinationPiece.position.x - playedPiece.position.x > 0) ? 1 : -1;
+            const newKingXPosition = playedPiece.position.x + direction * 2;
+            this.pieces = this.pieces.map(p => {
+                if (p.samePiecePosition(playedPiece)) {
+                    p.position.x = newKingXPosition;
+                } else if (p.samePiecePosition(destinationPiece)) {
+                    p.position.x = newKingXPosition - direction;
+                }
 
-    private addPawns() {
-        for (let i = 0; i < 8; i++) {
-            new Pawn(Colors.BLACK, this.getCell(i, 1))
-            new Pawn(Colors.WHITE, this.getCell(i, 6))
+                return p;
+            });
+
+            this.calculateAllMoves();
+            return true;
         }
+
+        if (enPassantMove) {
+            this.pieces = this.pieces.reduce((results, piece) => {
+                if (piece.samePiecePosition(playedPiece)) {
+                    if (piece.isPawn)
+                        (piece as Pawn).enPassant = false;
+                    piece.position.x = destination.x;
+                    piece.position.y = destination.y;
+                    piece.hasMoved = true;
+                    results.push(piece);
+                } else if (
+                    !piece.samePosition(new Position(destination.x, destination.y - pawnDirection))
+                ) {
+                    if (piece.isPawn) {
+                        (piece as Pawn).enPassant = false;
+                    }
+                    results.push(piece);
+                }
+
+                return results;
+            }, [] as Piece[]);
+
+            this.calculateAllMoves();
+        } else if (validMove) {
+            //update piece position
+            this.pieces = this.pieces.reduce((results, piece) => {
+                if (piece.samePiecePosition(playedPiece)) {
+                    if (piece.isPawn)
+                        (piece as Pawn).enPassant =
+                            Math.abs(playedPiece.position.y - destination.y) === 2 &&
+                            piece.type === PieceType.PAWN;
+                    piece.position.x = destination.x;
+                    piece.position.y = destination.y;
+                    piece.hasMoved = true;
+                    results.push(piece);
+                } else if (!piece.samePosition(destination)) {
+                    if (piece.isPawn) {
+                        (piece as Pawn).enPassant = false;
+                    }
+                    results.push(piece);
+                }
+
+                return results;
+            }, [] as Piece[]);
+
+            this.calculateAllMoves();
+        } else {
+            return false;
+        }
+
+        return true;
     }
 
-    private addKings(){
-        new King(Colors.BLACK, this.getCell(4, 0))
-        new King(Colors.WHITE, this.getCell(4, 7))
-    }
-
-    private addQueens() {
-        new Queen(Colors.BLACK, this.getCell(3, 0))
-        new Queen(Colors.WHITE, this.getCell(3, 7))
-    }
-
-    private addRooks() {
-        new Rook(Colors.BLACK, this.getCell(0, 0))
-        new Rook(Colors.BLACK, this.getCell(7, 0))
-        new Rook(Colors.WHITE, this.getCell(0, 7))
-        new Rook(Colors.WHITE, this.getCell(7, 7))
-    }
-
-    private addKnights() {
-        new Knight(Colors.WHITE, this.getCell(1, 7))
-        new Knight(Colors.WHITE, this.getCell(6, 7))
-        new Knight(Colors.BLACK, this.getCell(1, 0))
-        new Knight(Colors.BLACK, this.getCell(6, 0))
-    }
-
-    private addBishops() {
-        new Bishop(Colors.WHITE, this.getCell(2, 7))
-        new Bishop(Colors.WHITE, this.getCell(5, 7))
-        new Bishop(Colors.BLACK, this.getCell(2, 0))
-        new Bishop(Colors.BLACK, this.getCell(5, 0))
-    }
-
-    public addFigurs() {
-        this.addBishops()
-        this.addKings()
-        this.addPawns()
-        this.addKnights()
-        this.addQueens()
-        this.addRooks()
+    clone(): Board {
+        return new Board(this.pieces.map(p => p.clone()),
+            this.totalTurns);
     }
 }
