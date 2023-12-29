@@ -4,7 +4,6 @@ import { tileIsEmptyOrOccupiedByOpponent, tileIsOccupied, tileIsOccupiedByOppone
 
 export const queenMove = (initialPosition: Position, desiredPosition: Position, team: TeamType, boardState: Piece[]): boolean => {
     for(let i = 1; i < 8; i++) {
-      //Diagonal
       let multiplierX = (desiredPosition.x < initialPosition.x) ? -1 : (desiredPosition.x > initialPosition.x) ? 1 : 0;
       let multiplierY = (desiredPosition.y < initialPosition.y) ? -1 : (desiredPosition.y > initialPosition.y) ? 1 : 0;
 
@@ -26,7 +25,6 @@ export const queenMove = (initialPosition: Position, desiredPosition: Position, 
   export const getPossibleQueenMoves = (queen: Piece, boardstate: Piece[]): Position[] => {
     const possibleMoves: Position[] = [];
 
-    // Top movement
     for(let i = 1; i < 8; i++) {
       const destination = new Position(queen.position.x, queen.position.y + i);
 
@@ -40,7 +38,6 @@ export const queenMove = (initialPosition: Position, desiredPosition: Position, 
       }
     }
 
-    // Bottom movement
     for(let i = 1; i < 8; i++) {
       const destination = new Position(queen.position.x, queen.position.y - i);
 
@@ -54,7 +51,6 @@ export const queenMove = (initialPosition: Position, desiredPosition: Position, 
       }
     }
 
-    // Left movement
     for(let i = 1; i < 8; i++) {
       const destination = new Position(queen.position.x - i, queen.position.y);
 
@@ -68,7 +64,6 @@ export const queenMove = (initialPosition: Position, desiredPosition: Position, 
       }
     }
 
-    // Right movement
     for(let i = 1; i < 8; i++) {
       const destination = new Position(queen.position.x + i, queen.position.y);
 
@@ -82,7 +77,6 @@ export const queenMove = (initialPosition: Position, desiredPosition: Position, 
       }
     }
 
-    // Upper right movement
     for(let i = 1; i < 8; i++) {
       const destination = new Position(queen.position.x + i, queen.position.y + i);
 
@@ -96,7 +90,6 @@ export const queenMove = (initialPosition: Position, desiredPosition: Position, 
       }
     }
 
-    // Bottom right movement
     for(let i = 1; i < 8; i++) {
       const destination = new Position(queen.position.x + i, queen.position.y - i);
 
@@ -110,7 +103,6 @@ export const queenMove = (initialPosition: Position, desiredPosition: Position, 
       }
     }
 
-    // Bottom left movement
     for(let i = 1; i < 8; i++) {
       const destination = new Position(queen.position.x - i, queen.position.y - i);
 
@@ -124,7 +116,6 @@ export const queenMove = (initialPosition: Position, desiredPosition: Position, 
       }
     }
 
-    // Top left movement
     for(let i = 1; i < 8; i++) {
       const destination = new Position(queen.position.x - i, queen.position.y + i);
 

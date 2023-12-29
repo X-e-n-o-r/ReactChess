@@ -19,28 +19,23 @@ export class Board {
     }
 
     calculateAllMoves() {
-        // Calculate the moves of all the pieces
         for (const piece of this.pieces) {
             piece.possibleMoves = this.getValidMoves(piece, this.pieces)
         }
 
-        // Calculate castling moves
         for (const king of this.pieces.filter(p => p.isKing)) {
             if (king.possibleMoves === undefined) continue;
 
             king.possibleMoves = [...king.possibleMoves, ...getCastlingMoves(king, this.pieces)];
         }
 
-        // Check if the current team moves are valid
         this.checkCurrentTeamMoves();
 
-        // Remove the posibble moves for the team that is not playing
         for (const piece of
             this.pieces.filter(p => p.team !== this.currentTeam)) {
             piece.possibleMoves = [];
         }
 
-        // Check if the playing team still has moves left
         if (this.pieces.filter(p => p.team === this.currentTeam)
             .some(p => p.possibleMoves !== undefined && p.possibleMoves.length > 0)) return;
 
@@ -48,26 +43,20 @@ export class Board {
     }
 
     checkCurrentTeamMoves() {
-        // Loop through all the current team's pieces
+
         for (const piece of this.pieces.filter(p => p.team === this.currentTeam)) {
             if (piece.possibleMoves === undefined) continue;
 
-            // Simulate all the piece moves
             for (const move of piece.possibleMoves) {
                 const simulatedBoard = this.clone();
 
-                // Remove the piece at the destination position
                 simulatedBoard.pieces = simulatedBoard.pieces.filter(p => !p.samePosition(move));
 
-                // Get the piece of the cloned board
                 const clonedPiece = simulatedBoard.pieces.find(p => p.samePiecePosition(piece))!;
                 clonedPiece.position = move.clone();
 
-                // Get the king of the cloned board
                 const clonedKing = simulatedBoard.pieces.find(p => p.isKing && p.team === simulatedBoard.currentTeam)!;
 
-                // Loop through all enemy pieces, update their possible moves
-                // And check if the current team's king will be in danger
                 for (const enemy of simulatedBoard.pieces.filter(p => p.team !== simulatedBoard.currentTeam)) {
                     enemy.possibleMoves = simulatedBoard.getValidMoves(enemy, simulatedBoard.pieces);
 
@@ -112,7 +101,6 @@ export class Board {
         const pawnDirection = playedPiece.team === TeamType.OUR ? 1 : -1;
         const destinationPiece = this.pieces.find(p => p.samePosition(destination));
 
-        // If the move is a castling move do this
         if (playedPiece.isKing && destinationPiece?.isRook
             && destinationPiece.team === playedPiece.team) {
             const direction = (destinationPiece.position.x - playedPiece.position.x > 0) ? 1 : -1;
@@ -154,7 +142,6 @@ export class Board {
 
             this.calculateAllMoves();
         } else if (validMove) {
-            //update piece position
             this.pieces = this.pieces.reduce((results, piece) => {
                 if (piece.samePiecePosition(playedPiece)) {
                     if (piece.isPawn)
